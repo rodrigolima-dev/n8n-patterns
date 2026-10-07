@@ -1,0 +1,190 @@
+{
+  "id": "c3c6286d47cc5392",
+  "name": "Gate synthetic retry attempt",
+  "description": "Manual example that applies a sample attempt limit and routes the result for review or retry. It does not retry a real operation or call an external service.",
+  "active": false,
+  "nodes": [
+    {
+      "id": "3a89eaa4-3ac7-54ea-b35b-4641382b942d",
+      "name": "Start manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        240
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "3937d149-eed9-5f6f-bd3b-4722b89ef2aa",
+      "name": "Create sample attempt",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        240
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "719af02c-319a-51cc-91bf-0476a3f88cfc",
+              "name": "attempt",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "id": "1db14a7f-35d0-5af4-88a2-a15059ed6bd4",
+              "name": "max_attempts",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "71364206-71b9-517a-b7c4-c899df156704",
+              "name": "origin",
+              "value": "sample",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ed8d964f-6781-5bf6-99b0-ff5abaaabfe3",
+      "name": "Check retry limit",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        660,
+        240
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "2f78728c-eea6-5e30-bb86-13c669efeb9a",
+              "leftValue": "={{ $('Create sample attempt').item.json.attempt <= $('Create sample attempt').item.json.max_attempts }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c62fa3c9-78c1-5cbc-ba65-e90a2430b002",
+      "name": "Allow sample retry",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6f433389-dac8-54a9-b32a-db0c14d2c2bc",
+              "name": "status",
+              "value": "eligible",
+              "type": "string"
+            },
+            {
+              "id": "ff051d7f-79e0-51bc-9815-fc87acdf1407",
+              "name": "reason",
+              "value": "within_sample_limit",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "13dd806e-3c06-577b-be50-d0ff6e2de11a",
+      "name": "Request manual review",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        380
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7e9b322d-2005-5edb-9a0e-8f785207fc54",
+              "name": "status",
+              "value": "review",
+              "type": "string"
+            },
+            {
+              "id": "d9c95742-264d-54b6-8500-fe2e728e01b7",
+              "name": "reason",
+              "value": "sample_limit_reached",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Start manually": {
+      "main": [
+        [
+          {
+            "node": "Create sample attempt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create sample attempt": {
+      "main": [
+        [
+          {
+            "node": "Check retry limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check retry limit": {
+      "main": [
+        [
+          {
+            "node": "Allow sample retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Request manual review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

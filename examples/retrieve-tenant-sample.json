@@ -1,0 +1,88 @@
+{
+  "id": "c081aa66d6425c41",
+  "name": "Retrieve a tenant-scoped synthetic document",
+  "description": "Manual offline fixture: a Code node filters synthetic documents by tenant and publication state before deterministic keyword scoring. No database, vector store, or external service is called.",
+  "active": false,
+  "nodes": [
+    {
+      "id": "3cb87d90-728b-5fe8-ae88-3617ca0ac4f4",
+      "name": "Start manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        240
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "c89e1771-b965-5b38-a8e8-29d483c2db46",
+      "name": "Create sample query",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        240
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f621b338-c2ca-5bbd-aea8-c38f3b449a8c",
+              "name": "tenant_id",
+              "value": "demo-a",
+              "type": "string"
+            },
+            {
+              "id": "5ff2c439-25bb-592b-b3bb-a031f14fb049",
+              "name": "query",
+              "value": "shipping policy",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0c96cfd1-9176-50d2-9101-10a1fc94f700",
+      "name": "Filter and rank sample documents",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        240
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic, read-only retrieval fixture for the n8n Code node.\n// Filter by tenant and publication state before scoring any document.\nconst request = $input.first()?.json ?? {};\nconst tenantId = request.tenant_id;\nconst query = request.query;\nconst allowedTenants = new Set(['demo-a', 'demo-b']);\n\nif (\n  !allowedTenants.has(tenantId) ||\n  typeof query !== 'string' ||\n  query.trim().length === 0 ||\n  query.length > 120\n) {\n  return [{ json: { status: 'rejected', reason: 'invalid_sample_scope' } }];\n}\n\nconst documents = [\n  { id: 'A-001', tenant_id: 'demo-a', published: true, title: 'Shipping guide', text: 'Sample shipping policy and delivery windows.' },\n  { id: 'A-002', tenant_id: 'demo-a', published: false, title: 'Draft shipping policy', text: 'Unpublished sample document.' },\n  { id: 'A-003', tenant_id: 'demo-a', published: true, title: 'Returns guide', text: 'Sample returns and exchanges.' },\n  { id: 'B-001', tenant_id: 'demo-b', published: true, title: 'Shipping guide', text: 'Different sample shipping policy.' },\n];\n\nconst terms = [...new Set(query.toLowerCase().split(/[^\\p{L}\\p{N}]+/u).filter(Boolean))];\nconst results = documents\n  .filter((document) => document.tenant_id === tenantId && document.published)\n  .map((document) => {\n    const searchable = `${document.title} ${document.text}`.toLowerCase();\n    const score = terms.reduce((total, term) => total + Number(searchable.includes(term)), 0);\n    return { id: document.id, title: document.title, score };\n  })\n  .filter((document) => document.score > 0)\n  .sort((left, right) => right.score - left.score || left.id.localeCompare(right.id))\n  .slice(0, 3);\n\nreturn [{ json: { status: 'ok', tenant_id: tenantId, results } }];\n"
+      }
+    }
+  ],
+  "connections": {
+    "Start manually": {
+      "main": [
+        [
+          {
+            "node": "Create sample query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create sample query": {
+      "main": [
+        [
+          {
+            "node": "Filter and rank sample documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

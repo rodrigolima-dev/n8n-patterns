@@ -1,0 +1,190 @@
+{
+  "id": "5cc0e94eaffc5585",
+  "name": "Validate synthetic event envelope",
+  "description": "Manual example that checks a synthetic event identifier and type, then returns an explicit accepted or rejected result. No external service or credential is used.",
+  "active": false,
+  "nodes": [
+    {
+      "id": "001846ca-be7c-5233-b7ef-6b132f3c51fd",
+      "name": "Start manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        240
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "28da1062-02ab-5511-acf8-6b2e63e9ec7e",
+      "name": "Create sample event",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        240
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "02bff43c-d69e-530a-8b05-b29083c33949",
+              "name": "event_id",
+              "value": "EXAMPLE-0001",
+              "type": "string"
+            },
+            {
+              "id": "8fb8a3b3-76d6-5346-874d-d71dfcad858c",
+              "name": "kind",
+              "value": "demo",
+              "type": "string"
+            },
+            {
+              "id": "297e4c4b-8e89-53ec-8c84-9e69960e5efe",
+              "name": "origin",
+              "value": "sample",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a26cc144-fcd9-52ae-a071-7f3ba46545fa",
+      "name": "Check event envelope",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        660,
+        240
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "8d9f6ff6-a0a3-5307-8d47-797a6c32b7ae",
+              "leftValue": "={{ $('Create sample event').item.json.event_id.length > 0 && $('Create sample event').item.json.kind === 'demo' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c3146071-0a97-5551-9571-9ec9d242c45a",
+      "name": "Accept sample",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2d8ba365-03c6-510d-9d92-4b64b3d91f0d",
+              "name": "status",
+              "value": "accepted",
+              "type": "string"
+            },
+            {
+              "id": "1f6bcb75-3467-577b-a811-74c34b83d330",
+              "name": "event_id",
+              "value": "={{ $('Create sample event').item.json.event_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "4abb5d34-5bc4-5712-9319-0d67d6875a37",
+      "name": "Reject sample",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        380
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ba91d751-4194-5110-91c5-b2c5fa979068",
+              "name": "status",
+              "value": "rejected",
+              "type": "string"
+            },
+            {
+              "id": "d8bc617b-0224-5ab9-964a-da5e5bfdb5b9",
+              "name": "reason",
+              "value": "invalid_event_envelope",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Start manually": {
+      "main": [
+        [
+          {
+            "node": "Create sample event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create sample event": {
+      "main": [
+        [
+          {
+            "node": "Check event envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check event envelope": {
+      "main": [
+        [
+          {
+            "node": "Accept sample",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject sample",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

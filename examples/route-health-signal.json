@@ -1,0 +1,190 @@
+{
+  "id": "9201582da3865670",
+  "name": "Route synthetic health signal",
+  "description": "Manual example that classifies a synthetic service health signal into review or normal paths. No network request, alert, or production action is performed.",
+  "active": false,
+  "nodes": [
+    {
+      "id": "f88107c3-3346-5c5e-a193-f247e1d30d30",
+      "name": "Start manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        240
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "2afd82df-ff17-5717-8b0d-5b99eb0825b6",
+      "name": "Create sample signal",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        240
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "333f1bdc-e236-5371-afa3-4ee4380ad7d9",
+              "name": "status_code",
+              "value": 503,
+              "type": "number"
+            },
+            {
+              "id": "bc3a36f8-9c02-5882-b1c1-df3b4164b5ed",
+              "name": "latency_ms",
+              "value": 1200,
+              "type": "number"
+            },
+            {
+              "id": "9a0fcde9-82fb-5a16-898f-9290c553d2c1",
+              "name": "origin",
+              "value": "sample",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ce3ec690-22cc-5d31-8077-28280960d0c0",
+      "name": "Check degraded status",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        660,
+        240
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "697e46aa-2c49-57e3-aa43-67527b1ce579",
+              "leftValue": "={{ $('Create sample signal').item.json.status_code >= 500 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "744371da-b1eb-523d-8948-721654ca04c1",
+      "name": "Mark for review",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "80169492-d4b7-5f72-90df-89a6b77cb1db",
+              "name": "status",
+              "value": "review",
+              "type": "string"
+            },
+            {
+              "id": "4cc29df0-2448-5be1-9911-92e0528789bd",
+              "name": "reason",
+              "value": "degraded_signal",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "730d4713-7aa5-5424-a466-0019f09b0fae",
+      "name": "Mark normal",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        380
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "294d3998-9984-5f13-8982-ebb0be54a7cf",
+              "name": "status",
+              "value": "normal",
+              "type": "string"
+            },
+            {
+              "id": "7001726b-be94-5088-8c45-eecdb699c880",
+              "name": "reason",
+              "value": "healthy_signal",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Start manually": {
+      "main": [
+        [
+          {
+            "node": "Create sample signal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create sample signal": {
+      "main": [
+        [
+          {
+            "node": "Check degraded status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check degraded status": {
+      "main": [
+        [
+          {
+            "node": "Mark for review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark normal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
