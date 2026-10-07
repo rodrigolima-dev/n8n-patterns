@@ -119,6 +119,12 @@ def validate_data(data: object) -> list[str]:
             outputs = connections.get(node.get("name"), {}).get("main", [])
             if len(outputs) != 2 or any(not branch for branch in outputs):
                 errors.append("if node requires both outcomes")
+            conditions = node.get("parameters", {}).get("conditions", {}).get("conditions", [])
+            for condition in conditions:
+                operator = condition.get("operator", {})
+                if operator.get("type") == "boolean" and operator.get("operation") in {"true", "false"}:
+                    if operator.get("singleValue") is not True:
+                        errors.append("unary boolean condition requires singleValue")
 
     triggers = [node["name"] for node in nodes if node.get("type") == "n8n-nodes-base.manualTrigger"]
     if triggers:

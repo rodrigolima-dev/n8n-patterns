@@ -75,7 +75,8 @@
               "rightValue": "",
               "operator": {
                 "type": "boolean",
-                "operation": "true"
+                "operation": "true",
+                "singleValue": true
               }
             }
           ]

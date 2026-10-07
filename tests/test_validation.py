@@ -77,6 +77,12 @@ class ExampleValidationTests(unittest.TestCase):
         example["connections"]["Check event envelope"]["main"][1] = []
         self.assertIn("if node requires both outcomes", validate_data(example))
 
+    def test_unary_boolean_condition_requires_single_value_metadata(self):
+        example = copy.deepcopy(self.sample)
+        condition = next(node for node in example["nodes"] if node["type"] == "n8n-nodes-base.if")
+        condition["parameters"]["conditions"]["conditions"][0]["operator"].pop("singleValue", None)
+        self.assertIn("unary boolean condition requires singleValue", validate_data(example))
+
     def test_email_is_rejected(self):
         example = copy.deepcopy(self.sample)
         example["description"] = "contact@example.invalid"
