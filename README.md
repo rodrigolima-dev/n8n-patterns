@@ -25,9 +25,9 @@ In the three decision examples, each branch terminates in a named result. In the
 
 1. Use Python 3.12 or newer and Node.js 24 for local tests. No Python or Node packages, environment variables, API keys, or account are required for the checks.
 2. From the repository root, run `python scripts/validate_examples.py`, `python scripts/build_retrieval_example.py --check`, `python -m unittest discover -s tests -v`, and `node --test tests/tenant_retrieval.test.mjs`. The generated retrieval JSON embeds the code in `src/tenant_retrieval.js`; the check rejects a stale copy.
-3. In a disposable n8n instance, import one JSON file from `examples/` and run it manually. Change only synthetic fields in the **Create sample** or **Create sample query** node to inspect the results. Keep the workflow inactive.
+3. Use a fresh, disposable n8n profile outside this checkout. With n8n 2.42.4 installed, set `N8N_USER_FOLDER` to a new empty directory and `DB_TYPE=sqlite`, then run `n8n import:workflow --separate --input=examples --activeState=false`. Use `n8n execute --id=<id>` with each JSON file's top-level `id` to run an example. Importing into an existing profile can overwrite workflows with matching IDs, so do not use a profile that holds other work. Change only synthetic fields in the **Create sample** or **Create sample query** node to inspect results. Keep the workflows inactive.
 
-The JSON graph, connections, inactive state, and absence of embedded credentials and arbitrary network nodes are checked automatically. Import and execution in a particular n8n version have **not** been verified here; node compatibility and runtime behavior remain to be tested in an isolated instance.
+The JSON graph, connections, inactive state, and absence of embedded credentials and arbitrary network nodes are checked automatically. On 2026-10-07, all four workflows imported and executed successfully in a fresh local n8n 2.42.4 SQLite profile. The three decision workflows also completed their opposite branches after changing only synthetic sample fields in temporary copies. This verifies the documented offline examples on that version; it does not verify other n8n versions or any production integration.
 
 ## Security boundaries
 
@@ -41,4 +41,4 @@ See [SECURITY.md](SECURITY.md) for responsible reporting. The repository intenti
 
 ## Resumo em português
 
-Quatro workflows sintéticos e inativos demonstram validação de entrada, decisão de tentativa limitada, classificação de um sinal de saúde e busca por palavras com filtro de tenant e estado de publicação. Os testes conferem a estrutura, a lógica da busca sintética e os limites de segurança dos arquivos. A busca não representa autorização de produção nem busca vetorial. A execução em uma versão específica do n8n ainda precisa de validação em ambiente isolado. Nenhum export contém Agent, prompt, credencial ou chamada externa.
+Quatro workflows sintéticos e inativos demonstram validação de entrada, decisão de tentativa limitada, classificação de um sinal de saúde e busca por palavras com filtro de tenant e estado de publicação. Os testes conferem a estrutura, a lógica da busca sintética e os limites de segurança dos arquivos. Os quatro exemplos foram importados e executados em um perfil local isolado do n8n 2.42.4; os três fluxos de decisão também passaram pelos caminhos alternativos com entradas sintéticas. A busca não representa autorização de produção nem busca vetorial. Nenhum export contém Agent, prompt, credencial ou chamada externa.
